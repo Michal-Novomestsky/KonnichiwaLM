@@ -3,31 +3,20 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
 
-class Transformer(nn.Module):
-    def __init__(self, encoder, decoder, src_embed, tgt_embed, generator) -> None:
-        super().__init__()
-        self.encoder = encoder
-        self.decoder = decoder
-        self.src_embed = src_embed
-        self.tgt_embed = tgt_embed
-        self.generator = generator
+from Modules.Config import Config
 
-    def forward(self, src, tgt, src_mask, tgt_mask):
-        encoding = self.encoder(self.src_embed(src), src_mask)
-        return self.decoder(self.tgt_embed(tgt), encoding, src_mask, tgt_mask)
-    
 class Encoder(nn.Module):
-    def __init__(self, config) -> None:
+    def __init__(self, config: Config) -> None:
         super().__init__()
         self.embedding = Embedding(config)
         self.layers = nn.ModuleList([EncoderLayer(config) for _ in range(config.hidden_layers)])
 
 class Embedding(nn.Module):
-    def __init__(self, config) -> None:
+    def __init__(self, config: Config) -> None:
         raise NotImplementedError
     
 class EncoderLayer(nn.Module):
-    def __init__(self, config) -> None:
+    def __init__(self, config: Config) -> None:
         super().__init__()
         self.layer_norm_1 = nn.LayerNorm(config.d_model)
         self.layer_norm_2 = nn.LayerNorm(config.d_model)
@@ -35,7 +24,7 @@ class EncoderLayer(nn.Module):
         self.feed_forward = FeedForward(config)
 
 class MultiHeadAttention(nn.Module):
-    def __init__(self, config) -> None:
+    def __init__(self, config: Config) -> None:
         '''
         Returns a multi-head attention-scaled hidden state.
 
@@ -57,9 +46,8 @@ class MultiHeadAttention(nn.Module):
 class AttentionHead(nn.Module):
     def __init__(self, d_model, head_dim) -> None:
         '''
-        Returns an attention-scaled hidden state.
+        Returns an attention-scaled hidden state using squared dot product attention.
 
-        Uses squared dot product attention:
         Returns softmax(QK^T/sqrt(dim_k))V, where Query Q, Key K and Value V are calculated by passing a hidden
         state through linear layers.
         '''
@@ -82,7 +70,7 @@ class AttentionHead(nn.Module):
         return torch.bmm(weights, v)
 
 class FeedForward(nn.Module):
-    def __init__(self, config) -> None:
+    def __init__(self, config: Config) -> None:
         super().__init__()
         self.linear_1 = nn.Linear()
         
