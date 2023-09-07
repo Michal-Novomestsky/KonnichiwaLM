@@ -20,8 +20,14 @@ class EncoderLayer(nn.Module):
         super().__init__()
         self.layer_norm_1 = nn.LayerNorm(config.d_model)
         self.layer_norm_2 = nn.LayerNorm(config.d_model)
-        self.attn = MultiHeadAttention(config)
+        self.attention = MultiHeadAttention(config)
         self.feed_forward = FeedForward(config)
+
+    def forward(self, x) -> torch.tensor:
+        hidden_state = self.layer_norm_1(x)
+        x += self.attention(hidden_state)
+        x += self.feed_forward(self.layer_norm_2(x))
+        return x
 
 class MultiHeadAttention(nn.Module):
     def __init__(self, config: Config) -> None:
@@ -33,7 +39,7 @@ class MultiHeadAttention(nn.Module):
         super().__init__()
         d_model = config.d_model
         num_heads = config.num_attention_heads
-        head_dim = d_model // num_heads # Each head should have an equal amount of compute
+        head_dim = d_model // num_heads # The heads should cumilatively have the same compute as a single large head
         
         self.heads = nn.ModuleList([AttentionHead(d_model, head_dim) for _ in range(num_heads)])
         self.linear_output = nn.Linear(d_model, d_model)
@@ -72,5 +78,15 @@ class AttentionHead(nn.Module):
 class FeedForward(nn.Module):
     def __init__(self, config: Config) -> None:
         super().__init__()
-        self.linear_1 = nn.Linear()
+        self.linear_1 = nn.Linear(config.d_model, config.d_ff)
+        self.linear_2 = nn.Linear(config.d_ff, config.d_model)
+        self.gelu = nn.GELU()
+        self.dropout = nn.Dropout(config.dropout)
+
+    def forward(self, x) -> torch.tensor:
+        x = self.linear_1(x)
+        x = self.gelu(x)
+        x = self.linear_2(x)
+        x = self.dropout(x)
+        return x
         
