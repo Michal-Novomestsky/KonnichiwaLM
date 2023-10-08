@@ -1,5 +1,4 @@
 transformers[torch]==4.16.2
-datasets[audio]==1.16.1
 matplotlib
 ipywidgets
 seaborn
