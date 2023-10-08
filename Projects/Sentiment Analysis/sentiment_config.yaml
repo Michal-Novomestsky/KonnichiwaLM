@@ -1,0 +1,5 @@
+d_model: 250
+encoder_layers: 5
+num_attention_heads: 5
+d_ff: 250
+dropout: 0.1
