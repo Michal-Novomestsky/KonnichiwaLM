@@ -22,6 +22,9 @@ class Classifier(nn.Module):
         x = self.dropout(x)
         return self.classification_layer(x)
     
+    def classify(self, input: str):
+        raise NotImplementedError
+    
 class GPT(nn.Module):
     def __init__(self) -> None:
         super().__init__()
